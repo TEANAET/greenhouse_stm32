@@ -270,7 +270,7 @@ void TIM2_IRQHandler(void)
 			//sprintf(temp,"{\"Light\":\"%d\",\"Temp\":\"%d\",\"Hum\":\"%d\",\"Soil\":\"%d\"}",Light_val,Tem_val,Hum_val,Soil_val);//构建报文\
 			
 			sprintf(temp,"{\"Solar\":{\"Light\":\"%d\"},\"DHT11\":{\"Tem\":\"%d\",\"Hum\":\"%d\"},\"GY16\":{\"Soil\":\"%d\"}}",Light_val,Tem_val,Hum_val,Soil_val);//构建报文
-			T_json(temp,tempAll);
+			T_json(1,"0",temp,tempAll);
 			//sprintf(temp,"{\"Tem\":\"%d\",\"Hum\":\"%d\"}",Tem_val,Hum_val);
 			if(connectFlag == 1)
 				MQTT_PublishQs0(Data_TOPIC_NAME,tempAll, strlen(tempAll));

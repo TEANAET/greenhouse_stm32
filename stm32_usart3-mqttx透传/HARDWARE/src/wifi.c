@@ -27,7 +27,6 @@ void WiFi_EnableIO_Init()
 {
   GPIO_InitTypeDef GPIO_InitStructure;                    //定义一个设置IO端口参数的结构体
 	RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG , ENABLE); //使能PG端口时钟
-	
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;               //准备设置PG7
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;       //速率50Mhz
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;   	    //推挽输出方式
