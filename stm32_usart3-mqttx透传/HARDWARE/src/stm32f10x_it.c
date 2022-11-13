@@ -179,10 +179,11 @@ void TIM2_IRQHandler(void)
 //	float tempvalue;
 //	u16 pm25;
   char tem,hum;	
+	u8 oled_flag = 0;
 	char tem_buff[3],hum_buff[3];
 	char head1[3];
 	char temp[50];				//定义一个临时缓冲区1,不包括报头
-	char tempAll[100];			//定义一个临时缓冲区2，包括所有数据
+	char tempAll[256];			//定义一个临时缓冲区2，包括所有数据
 	
 	int	dataLen = 0;			//报文长度
 //	while(DS18B20_Init())
@@ -209,12 +210,17 @@ void TIM2_IRQHandler(void)
 		hum_buff[2]='\0';
 //		tempvalue=30;
 		memset(temp,    0, 50);				    //清空缓冲区1
-		memset(tempAll, 0, 100);				//清空缓冲区2
+		memset(tempAll, 0, 256);				//清空缓冲区2
 		memset(head1,   0, 3);					//清空MQTT头
 		 
 		
 		Hum_val = Myatoi(hum_buff);
 		Tem_val = Myatoi(tem_buff);
+		if(oled_flag%3==2)
+		{
+			OLED_Clear();
+			oled_flag++;
+		}
 		//OLED_Clear();
 //	OLED_ShowString(0,0,"Tem:",16);
 //	OLED_ShowString(70,0,"Hum:",16);
@@ -225,10 +231,22 @@ void TIM2_IRQHandler(void)
 		OLED_ShowNum(100,0,Hum_val,2,16);
 		OLED_ShowNum(55,2,Soil_val,2,16);
 		OLED_ShowNum(50,4,Light_val,2,16);
+		OLED_ShowString(45,6,"OFF",16);
 //		OLED_ShowNum(30,6,Soil_val,2,16);
 //		OLED_ShowNum(100,6,Light_val,2,16);
 		if(Auto_ctro !=0)
 		{
+			if(oled_flag%3==0 || oled_flag%3==1)
+			{
+				OLED_Clear();
+				oled_flag++;
+			}
+			oled_dispaly();
+			OLED_ShowNum(35,0,Tem_val,2,16);
+			OLED_ShowNum(100,0,Hum_val,2,16);
+			OLED_ShowNum(55,2,Soil_val,2,16);
+			OLED_ShowNum(50,4,Light_val,2,16);
+			OLED_ShowString(45,6,"ON",16);
 			if(Hum_val>=hum_fa)
 			{
 				ledFlag = "LEDON";
@@ -270,7 +288,7 @@ void TIM2_IRQHandler(void)
 			//sprintf(temp,"{\"Light\":\"%d\",\"Temp\":\"%d\",\"Hum\":\"%d\",\"Soil\":\"%d\"}",Light_val,Tem_val,Hum_val,Soil_val);//构建报文\
 			
 			sprintf(temp,"{\"Solar\":{\"Light\":\"%d\"},\"DHT11\":{\"Tem\":\"%d\",\"Hum\":\"%d\"},\"GY16\":{\"Soil\":\"%d\"}}",Light_val,Tem_val,Hum_val,Soil_val);//构建报文
-			T_json(1,"0",temp,tempAll);
+			T_json(1,0,temp,tempAll);
 			//sprintf(temp,"{\"Tem\":\"%d\",\"Hum\":\"%d\"}",Tem_val,Hum_val);
 			if(connectFlag == 1)
 				MQTT_PublishQs0(Data_TOPIC_NAME,tempAll, strlen(tempAll));

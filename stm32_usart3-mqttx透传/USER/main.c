@@ -87,6 +87,7 @@ char *ledFlag = "LEDOFF";       //LED状态
 char *beepFlag = "BEEPOFF";       //蜂鸣器状态
 char *relayFlag = "RELAYOFF";     //继电器状态
 char *relay2Flag = "RELAY2OFF";
+char *auto_flag = "AUTO_OFF";
 //int   dhtFlag = 0;		        //温湿度数据传输状态
 u8 adcx;
 int main(void) 
@@ -275,6 +276,7 @@ while(1)
 			 if(!memcmp(&MQTT_CMDOutPtr[2],cmdAuto_On,strlen(cmdAuto_On)))
 				{
 					Auto_ctro=1;//自动控制标志位置1
+					auto_flag = "AUTO_ON";
 					
 					u1_printf("自动控制开!\r\n");
 					
@@ -283,6 +285,7 @@ while(1)
 				{    
 					Auto_ctro = 0;                 //自动控制标志位置0
 					u1_printf("自动控制关!\r\n");
+					auto_flag = "AUTO_OFF";
 					Flash_fa=0;
 				}
 				else if(Auto_ctro != 0)//打开了自动控制
@@ -397,27 +400,15 @@ while(1)
 					 u1_printf("未知指令\r\n");				//串口输出信息	
 					
 //					 u3_TxData(MQTT_CMDOutPtr);       //串口3发送命令缓冲区的数据，MQTT_CMDOutPtr的前两个元素为命令长度。
-					}
-				
-//				else if(!memcmp(&MQTT_CMDOutPtr[2],cmdFA,strlen((char *)&MQTT_CMDOutPtr[2])-2))//阀值
-			
-//				else if(!memcmp(&MQTT_CMDOutPtr[2],cmdDHT11_On,strlen(cmdDHT11_On)))//判断指令，如果是CMD3
-//				{      
-//					dhtFlag = 1;                 //dataFlag置1，表示处于采集状态了
-//					TIM2_ENABLE_10S();           //定时器2，,10s间隔采集温湿度   
-//				}
-//				else if(!memcmp(&MQTT_CMDOutPtr[2],cmdDHT11_Off,strlen(cmdDHT11_Off)))//判断指令，如果是CMD3
-//				{     
-//					dhtFlag = 0;                 //dataFlag置0，表示处于停止状态了
-//					TIM_Cmd(TIM2,DISABLE);		 //判断2路开关状态和采集状态，并发布给服务器
-//				}								
+					}						
 				
 			
 				MQTT_CMDOutPtr += CBUFF_UNIT;				//指针下移
 				if(MQTT_CMDOutPtr == MQTT_CMDEndPtr)	    //如果指针到缓冲区尾部了
 				MQTT_CMDOutPtr = MQTT_CMDBuf[0];			//指针归位到缓冲区开头	
 				
-				Send_Data();//发送控制设备的状态数据
+				Send_Data();
+				Send_Status();//发送控制设备的状态数据
 				//处理命令缓冲区数据的else if分支结尾		
 //				temp=NULL;			//将temp置空	
 			}	//connectFlag=1的if分支的结尾

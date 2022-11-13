@@ -17,7 +17,7 @@
 //extern int fa;
 extern u8 soil_fa,hum_fa,light_fa;
 extern s8 tem_fa;
-extern char *ledFlag,*beepFlag,*relayFlag,*relay2Flag;
+extern char *ledFlag,*beepFlag,*relayFlag,*relay2Flag,*auto_flag;
 
 //void convertUnCharToStr(char* str, unsigned char* UnChar, int ucLen)  
 //{  
@@ -69,18 +69,18 @@ int length(int a)
 void Send_Status(void)
 {		
 	char  head1[3];
-	char  temp[128];          	//定义一个临时缓冲区1,不包括报头
+	char  temp[256];          	//定义一个临时缓冲区1,不包括报头
 	char  tempAll[256];       	//定义一个临时缓冲区2，包括所有数据
 
 	int   dataLen;     	  	    //报文长度	
 	
-	memset(temp,       0, 128);  //清空缓冲区1
+	memset(temp,       0, 256);  //清空缓冲区1
 	memset(tempAll,    0, 256); //清空缓冲区2
 	memset(head1,      0, 3);   //清空MQTT头                           						 
 
 //	sprintf(temp, "{\"LED\":\"%s\",\"BEEP\":\"%s\",\"TEMFA\":\"%d\",\"HUMFA\":\"%d\",\"LIGHTFA\":\"%d\"}", ledFlag,beepFlag,tem_fa,hum_fa,light_fa);//构建报文,“LED”为OneNET平台的数据流名称
-	sprintf(temp,"{\"Status\":{\"LED\":\"%s\",\"BEEP\":\"%s\",\"RELAY\":\"%s\",\"RELAY2\":\"%s\"}}",ledFlag,beepFlag,relayFlag,relay2Flag);
-	T_json(1,"1",temp,tempAll);
+	sprintf(temp,"{\"Status\":{\"LED\":\"%s\",\"BEEP\":\"%s\",\"RELAY\":\"%s\",\"RELAY2\":\"%s\",\"AUTO\":\"%s\"}}",ledFlag,beepFlag,relayFlag,relay2Flag,auto_flag);
+	T_json(1,1,temp,tempAll);
 	if(connectFlag == 1)
 				MQTT_PublishQs0(Data_Status_Return,tempAll, strlen(tempAll));
 }
@@ -99,7 +99,7 @@ void Send_Data(void)
 
 //	sprintf(temp, "{\"LED\":\"%s\",\"BEEP\":\"%s\",\"TEMFA\":\"%d\",\"HUMFA\":\"%d\",\"LIGHTFA\":\"%d\"}", ledFlag,beepFlag,tem_fa,hum_fa,light_fa);//构建报文,“LED”为OneNET平台的数据流名称
 	sprintf(temp,"{\"FAZHI\":{\"TEMFA\":\"%d\",\"HUMFA\":\"%d\",\"LIGHTFA\":\"%d\",\"SOILFA\":\"%d\"}}",tem_fa,hum_fa,light_fa,soil_fa);
-	T_json(1,"2",temp,tempAll);
+	T_json(1,2,temp,tempAll);
 	if(connectFlag == 1)
 				MQTT_PublishQs0(Data_Fa_Return,tempAll, strlen(tempAll));
 }

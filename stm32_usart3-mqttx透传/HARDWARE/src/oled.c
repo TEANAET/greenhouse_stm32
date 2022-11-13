@@ -398,6 +398,7 @@ void oled_dispaly()
 	OLED_ShowString(70,0,"Hum:",16);
 	OLED_ShowString(0,2,"Soil_H:",16);
 	OLED_ShowString(0,4,"Light:",16);
+	OLED_ShowString(0,6,"Auto:",16);
 //	OLED_ShowString(0,6,"Fan1:",16);
 //	OLED_ShowString(50,6,"Fan2:",16);
 }
