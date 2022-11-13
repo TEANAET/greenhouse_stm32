@@ -23,6 +23,7 @@
 #define  P_TOPIC_NAME         "topic_two" 
 #define  Data_TOPIC_NAME      "$dp"                                         //stm32发布的主题
 #define  Data_Status_Return    "data_msg"
+#define  Data_Fa_Return				"fa_msg"
 #define	 MQTTServerIP	        "8.134.68.89"															//EMQX IP
 #define  MQTTServerPort       1883  																				//EMQX Port
 

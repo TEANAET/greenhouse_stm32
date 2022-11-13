@@ -79,9 +79,6 @@ char *cmdBEEP_On = "BEEPON";      //蜂鸣器·打开
 char *cmdBEEP_Off = "BEEPOFF";    //蜂鸣器关闭
 char *cmdRelay_On = "RELAYON";      //继电器·打开
 char *cmdRelay_Off = "RELAYOFF";    //继电器关闭
-
-
-
 char *cmdRelay2_On = "RELAY2ON";      //继电器·打开
 char *cmdRelay2_Off = "RELAY2OFF";    //继电器关闭
 
@@ -89,6 +86,7 @@ char *cmdRelay2_Off = "RELAY2OFF";    //继电器关闭
 char *ledFlag = "LEDOFF";       //LED状态
 char *beepFlag = "BEEPOFF";       //蜂鸣器状态
 char *relayFlag = "RELAYOFF";     //继电器状态
+char *relay2Flag = "RELAY2OFF";
 //int   dhtFlag = 0;		        //温湿度数据传输状态
 u8 adcx;
 int main(void) 
@@ -225,6 +223,7 @@ while(1)
 									subcribePackFlag = 1;				//subcribePackFlag置1，表示订阅报文成功，其他报文可发送
 									pingFlag = 0;						//pingFlag清零
 									TIM3_ENABLE_30S();					//启动30s的PING定时器	
+									Send_Status();
 									Send_Data();
 									TIM5_Init(10000,36000); //定时15s,保存一次阈值
 									TIM2_ENABLE_5S();
@@ -375,14 +374,14 @@ while(1)
 					
 					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdRelay2_On,strlen(cmdRelay2_On))) //判断指令，如果是CMD11
 					{ 
-//						relayFlag = "RELAYON";                                           
+						relay2Flag = "RELAY2ON";                                           
 						Relay2_On(); 								                //LED关闭
 //						Air_flag=1;
 						u1_printf("继电器2开启\r\n");
 					}
 					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdRelay2_Off,strlen(cmdRelay2_Off))) //判断指令，如果是CMD11
 					{ 
-//					relayFlag = "RELAYOFF";                                           
+					relay2Flag = "RELAY2OFF";                                           
 						Relay2_Off();
 //						Air_flag=0;
 						u1_printf("继电器2关闭\r\n");

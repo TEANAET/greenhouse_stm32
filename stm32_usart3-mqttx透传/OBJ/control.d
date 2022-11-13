@@ -34,3 +34,4 @@
 ..\obj\control.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\obj\control.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 ..\obj\control.o: ..\HARDWARE\inc\mqtt.h
+..\obj\control.o: ..\SYS\json.h
