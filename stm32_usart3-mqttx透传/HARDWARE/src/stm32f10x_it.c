@@ -186,12 +186,6 @@ void TIM2_IRQHandler(void)
 	char tempAll[256];			//定义一个临时缓冲区2，包括所有数据
 	
 	int	dataLen = 0;			//报文长度
-//	while(DS18B20_Init())
-//	{
-//		u1_printf("DS18B20检测失败，请插好!\r\n");
-//		DelayMs(500);
-//	}
-//		u1_printf("DS18B20检测成功!\r\n");
 
 	if(TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)	
 	{ 
@@ -216,7 +210,7 @@ void TIM2_IRQHandler(void)
 		
 		Hum_val = Myatoi(hum_buff);
 		Tem_val = Myatoi(tem_buff);
-		if(oled_flag%3==2)
+		if(oled_flag%3==1 && Auto_ctro==0)
 		{
 			OLED_Clear();
 			oled_flag++;
@@ -236,7 +230,7 @@ void TIM2_IRQHandler(void)
 //		OLED_ShowNum(100,6,Light_val,2,16);
 		if(Auto_ctro !=0)
 		{
-			if(oled_flag%3==0 || oled_flag%3==1)
+			if(oled_flag%3==0 || oled_flag%3==2)
 			{
 				OLED_Clear();
 				oled_flag++;
