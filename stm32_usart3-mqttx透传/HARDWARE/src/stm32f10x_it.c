@@ -34,6 +34,7 @@ extern s8 Tem_val;
 extern u8 Auto_ctro;
 
 u8 Maxbuf[11];
+u8 oled_flag = 0;
 
 extern char *ledFlag,*beepFlag,*relayFlag;
 
@@ -179,7 +180,7 @@ void TIM2_IRQHandler(void)
 //	float tempvalue;
 //	u16 pm25;
   char tem,hum;	
-	u8 oled_flag = 0;
+	
 	char tem_buff[3],hum_buff[3];
 	char head1[3];
 	char temp[50];				//定义一个临时缓冲区1,不包括报头
@@ -210,37 +211,41 @@ void TIM2_IRQHandler(void)
 		
 		Hum_val = Myatoi(hum_buff);
 		Tem_val = Myatoi(tem_buff);
-		if(oled_flag%3==1 && Auto_ctro==0)
+		if(oled_flag%2==0 && Auto_ctro==0)
 		{
 			OLED_Clear();
 			oled_flag++;
+			oled_dispaly();
+			OLED_ShowString(45,6,"OFF",16);
 		}
 		//OLED_Clear();
 //	OLED_ShowString(0,0,"Tem:",16);
 //	OLED_ShowString(70,0,"Hum:",16);
 //	OLED_ShowString(0,2,"Soil_H:",16);
 //	OLED_ShowString(0,4,"Light:",16);
-		oled_dispaly();
+		
 	  OLED_ShowNum(35,0,Tem_val,2,16);
 		OLED_ShowNum(100,0,Hum_val,2,16);
 		OLED_ShowNum(55,2,Soil_val,2,16);
 		OLED_ShowNum(50,4,Light_val,2,16);
-		OLED_ShowString(45,6,"OFF",16);
+		
 //		OLED_ShowNum(30,6,Soil_val,2,16);
 //		OLED_ShowNum(100,6,Light_val,2,16);
 		if(Auto_ctro !=0)
 		{
-			if(oled_flag%3==0 || oled_flag%3==2)
+			if(oled_flag%2==1)
 			{
 				OLED_Clear();
 				oled_flag++;
+				oled_dispaly();
+				OLED_ShowString(45,6,"ON",16);
 			}
-			oled_dispaly();
+			
 			OLED_ShowNum(35,0,Tem_val,2,16);
 			OLED_ShowNum(100,0,Hum_val,2,16);
 			OLED_ShowNum(55,2,Soil_val,2,16);
 			OLED_ShowNum(50,4,Light_val,2,16);
-			OLED_ShowString(45,6,"ON",16);
+			
 			if(Hum_val>=hum_fa)
 			{
 				ledFlag = "LEDON";
