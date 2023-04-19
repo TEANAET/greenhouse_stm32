@@ -1,6 +1,6 @@
 --cpu Cortex-M3
-"..\obj\main.o"
 "..\obj\ds18b20.o"
+"..\obj\main.o"
 "..\obj\control.o"
 "..\obj\delay.o"
 "..\obj\led.o"
@@ -23,6 +23,8 @@
 "..\obj\relay.o"
 "..\obj\stmflash.o"
 "..\obj\oled.o"
+"..\obj\timer6.o"
+"..\obj\step_motor.o"
 "..\obj\core_cm3.o"
 "..\obj\system_stm32f10x.o"
 "..\obj\startup_stm32f10x_hd.o"

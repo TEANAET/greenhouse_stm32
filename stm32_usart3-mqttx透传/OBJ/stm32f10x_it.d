@@ -50,6 +50,7 @@
 ..\obj\stm32f10x_it.o: ..\HARDWARE\inc\Relay.h
 ..\obj\stm32f10x_it.o: ..\HARDWARE\inc\stmflash.h
 ..\obj\stm32f10x_it.o: ..\HARDWARE\inc\led.h
+..\obj\stm32f10x_it.o: ..\HARDWARE\inc\step_motor.h
 ..\obj\stm32f10x_it.o: ..\HARDWARE\inc\lsens.h
 ..\obj\stm32f10x_it.o: ..\HARDWARE\inc\adc.h
 ..\obj\stm32f10x_it.o: ..\SYS\json.h

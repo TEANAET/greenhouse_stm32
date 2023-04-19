@@ -222,6 +222,22 @@ void OLED_Clear(void)
 		for(n=0;n<128;n++)OLED_WR_Byte(0,OLED_DATA); 
 	} //更新显示
 }
+
+//清屏函数,清完屏,整个屏幕是黑色的!和没点亮一样!!!	  
+void OLED_Clear_Part(u8 x0,u8 x1,u8 y0,u8 y1)  
+{  
+	u8 i,n;		    
+	for(i=y0;i<y1;i++)  
+	{  
+		OLED_WR_Byte (0xb0+i,OLED_CMD);    //设置页地址（0~7）
+		OLED_WR_Byte (0x00,OLED_CMD);      //设置显示位置—列低地址
+		OLED_WR_Byte (0x10,OLED_CMD);      //设置显示位置—列高地址   
+		for(n=x0;n<x1;n++)OLED_WR_Byte(0,OLED_DATA); 
+	} //更新显示
+}
+
+
+
 void OLED_On(void)  
 {  
 	u8 i,n;		    
@@ -351,7 +367,7 @@ void OLED_Init(void)
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5|GPIO_Pin_7;	 
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;//速度50MHz
- 	GPIO_Init(GPIOA, &GPIO_InitStructure);	  //初始化GPIOD3,6
+ 	GPIO_Init(GPIOA, &GPIO_InitStructure);	  //初始化GPIOA5,7
  	GPIO_SetBits(GPIOA,GPIO_Pin_5|GPIO_Pin_7);	
 
 
@@ -399,6 +415,7 @@ void oled_dispaly()
 	OLED_ShowString(0,2,"Soil_H:",16);
 	OLED_ShowString(0,4,"Light:",16);
 	OLED_ShowString(0,6,"Auto:",16);
+	
 //	OLED_ShowString(0,6,"Fan1:",16);
 //	OLED_ShowString(50,6,"Fan2:",16);
 }

@@ -10,4 +10,8 @@ void Relay_Off(void);
 void Relay2_Init(void);
 void Relay2_Off(void);
 void Relay2_On(void);
+void Fans_Init(void);
+void Fans_On(void);
+void Fans_Off(void);
+
 #endif

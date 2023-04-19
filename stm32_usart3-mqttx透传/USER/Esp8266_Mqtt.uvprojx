@@ -381,13 +381,6 @@
       <Groups>
         <Group>
           <GroupName>USER</GroupName>
-          <Files>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\main.c</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>HARDWARE</GroupName>
@@ -396,6 +389,11 @@
               <FileName>ds18b20.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\src\ds18b20.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\main.c</FilePath>
             </File>
             <File>
               <FileName>control.c</FileName>
@@ -506,6 +504,16 @@
               <FileName>oled.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\src\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>timer6.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\timer6.c</FilePath>
+            </File>
+            <File>
+              <FileName>step_motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\step_motor.c</FilePath>
             </File>
           </Files>
         </Group>

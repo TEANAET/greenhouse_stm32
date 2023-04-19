@@ -35,6 +35,24 @@ void Relay2_Init(void)
 
 }
 
+
+//排气扇初始化
+void Fans_Init(void)
+{
+ 
+ GPIO_InitTypeDef  GPIO_InitStructure;
+ 	
+ RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF, ENABLE);	 //使能GPIOG端口时钟
+ 
+ GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;				 //BEEP-->PB.8 端口配置
+ GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD; 		 //开漏输出
+ GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	 //速度为50MHz
+ GPIO_Init(GPIOF, &GPIO_InitStructure);	 //根据参数初始化GPIOB.8
+ 
+ GPIO_SetBits(GPIOF,GPIO_Pin_9);//输出0，关闭排气扇输出
+//	GPIO_SetBits(GPIOF,GPIO_Pin_9);//输出为1，关闭继电器
+
+}
 /*-------------------------------------------------*/
 /*函数名：继电器开启                                  */
 /*参  数：无                                       */
@@ -76,3 +94,23 @@ void Relay2_On(void)
 {		
 	GPIO_ResetBits(GPIOG, GPIO_Pin_4); 						 //PC.0.1.2.3 输出高
 }
+
+/*-------------------------------------------------*/
+/*函数名：排气扇打开                               */
+/*参  数：无                                       */
+/*返回值：无                                       */
+/*-------------------------------------------------*/
+void Fans_On(void)
+{		
+	GPIO_ResetBits(GPIOF, GPIO_Pin_9); 						 //PC.0.1.2.3 输出高
+}
+/*-------------------------------------------------*/
+/*函数名：排气扇关闭                                  */
+/*参  数：无                                       */
+/*返回值：无                                       */
+/*-------------------------------------------------*/
+void Fans_Off(void)
+{			
+	GPIO_SetBits(GPIOF, GPIO_Pin_9); 						 //PC.0.1.2.3 输出低
+} 
+

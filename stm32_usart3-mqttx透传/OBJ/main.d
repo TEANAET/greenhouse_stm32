@@ -40,6 +40,7 @@
 ..\obj\main.o: ..\HARDWARE\inc\timer2.h
 ..\obj\main.o: ..\HARDWARE\inc\timer3.h
 ..\obj\main.o: ..\HARDWARE\inc\timer4.h
+..\obj\main.o: ..\HARDWARE\inc\timer6.h
 ..\obj\main.o: ..\HARDWARE\inc\timer5.h
 ..\obj\main.o: ..\HARDWARE\inc\wifi.h
 ..\obj\main.o: ..\HARDWARE\inc\led.h
@@ -49,6 +50,7 @@
 ..\obj\main.o: ..\HARDWARE\inc\adc.h
 ..\obj\main.o: ..\HARDWARE\inc\Relay.h
 ..\obj\main.o: ..\HARDWARE\inc\stmflash.h
+..\obj\main.o: ..\HARDWARE\inc\step_motor.h
 ..\obj\main.o: ..\HARDWARE\inc\dht11.h
 ..\obj\main.o: ..\HARDWARE\inc\MQ_Sensor.h
 ..\obj\main.o: ..\HARDWARE\inc\oled.h

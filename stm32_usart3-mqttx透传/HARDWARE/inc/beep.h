@@ -14,7 +14,7 @@
 //All rights reserved									  
 ////////////////////////////////////////////////////////////////////////////////// 
 //蜂鸣器端口定义
-#define BEEP_PIN GPIO_Pin_8	// BEEP,蜂鸣器接口		 
+#define BEEP_PIN GPIO_Pin_9	// BEEP,蜂鸣器接口		 
 //#define BEEP_PIN		GPIO_Pin_3
 
 void BEEP_Init(void);	//初始化

@@ -64,6 +64,7 @@ void Delay_1ms(unsigned int Del_1ms);
 void fill_picture(unsigned char fill_Data);
 void Picture(void);
 void IIC_Start(void);
+void OLED_Clear_Part(u8 x0,u8 x1,u8 y0,u8 y1);  
 void IIC_Stop(void);
 void Write_IIC_Command(unsigned char IIC_Command);
 void Write_IIC_Data(unsigned char IIC_Data);

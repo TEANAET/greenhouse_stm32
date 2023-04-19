@@ -20,22 +20,27 @@
 #include "Relay.h"
 #include "stmflash.h"
 #include "led.h"
+#include "step_motor.h"
 #include "lsens.h"
 #include  "json.h"
 #define FLASH_SAVE_ADDR  0X08070000
 //外部变量
-extern u8 tem_fa,soil_fa,hum_fa,light_fa;
+//extern u8 tem_fa,soil_fa,hum_fa,light_fa;
+u8 flush_flag = 0;
+u8 page_flag = 0;
+u8 step_flag,step_on_flag = 0;
+extern u8 tem_fa_min,tem_fa_max,soil_fa_min,soil_fa_max,hum_fa_min,hum_fa_max,light_fa_min,light_fa_max;
 
 extern u8 Flash_fa;
 extern u8 Soil_val,Light_val,Hum_val;
 
 extern s8 Tem_val;
 
-extern u8 Auto_ctro;
+extern u8 Auto_ctro,Syn_flag;
+int i;
+u8 Maxbuf[33];
 
-u8 Maxbuf[11];
-
-extern char *ledFlag,*beepFlag,*relayFlag;
+extern char *ledFlag,*beepFlag,*led2Flag,*relayFlag,*relay2Flag,*fansFlag;
 
 /*-------------------------------------------------*/
 /*函数名：串口2接收中断函数（最高优先级，处理接收数据）*/
@@ -69,6 +74,173 @@ void USART2_IRQHandler(void)
 		}
 	}
 } 
+
+ /*-------------------------------------------------*/
+/*函数名：定时器6中断服务函数。OLED显示          */
+/*参  数：无                                       */
+/*返回值：无                                       */
+/*-------------------------------------------------*/
+void TIM6_IRQHandler(void)
+{
+	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)//如果TIM_IT_Update置位，表示TIM6溢出中断，进入if	
+	{
+		
+		switch(page_flag%3)
+			{
+			case 0:
+			{
+			page_flag++;
+			if(flush_flag == 0){//第一次显示
+			OLED_Clear();
+			flush_flag++;
+			oled_dispaly();
+			OLED_ShowNum(35,0,Tem_val,2,16);
+			OLED_ShowNum(100,0,Hum_val,2,16);
+			OLED_ShowNum(55,2,Soil_val,2,16);
+			OLED_ShowNum(50,4,Light_val,2,16);
+			if(Auto_ctro ==1)
+			{
+				OLED_Clear_Part(45,80,6,6);
+				OLED_ShowString(45,6,"ON",16);
+			}else
+			{
+				OLED_Clear_Part(45,80,6,6);
+				OLED_ShowString(45,6,"OFF",16);
+			}
+		}
+		else
+		{
+		oled_dispaly();
+		for(i=0;i<3;i++)
+		{
+			
+			OLED_ShowNum(35,0,Tem_val,2,16);
+			OLED_ShowNum(100,0,Hum_val,2,16);
+			OLED_ShowNum(55,2,Soil_val,2,16);
+			OLED_ShowNum(50,4,Light_val,2,16);
+			if(Auto_ctro ==1)
+			{
+				OLED_Clear_Part(45,80,6,6);
+				OLED_ShowString(45,6,"ON",16);
+			}
+				if(Auto_ctro ==0)
+			{
+				OLED_Clear_Part(45,80,6,6);
+				OLED_ShowString(45,6,"OFF",16);
+			}
+			DelayMs(2500);
+		}
+		
+		}
+		i=0;
+		flush_flag=0;//刷屏标志位复位
+			}
+		break;
+			case 1:
+			{
+				page_flag++;
+			if(flush_flag == 0){//第一次显示
+				OLED_Clear();
+//				OLED_ShowString(45,6,"HAHA",16);
+				OLED_ShowString(0,0,"LED:",16);
+				OLED_ShowString(0,2,"RELAY:",16);
+				OLED_ShowString(0,4,"RELAY2:",16);
+				OLED_ShowString(0,6,"BEEP:",16);
+				if(strcmp(ledFlag,"LEDON") == 0)
+				{
+					OLED_ShowString(35,0,"ON",16);
+				}else
+				{
+					OLED_ShowString(35,0,"OFF",16);
+				}
+				if(strcmp(relayFlag,"RELAYON") == 0)
+				{
+					OLED_ShowString(55,2,"ON",16);
+				}else
+				{
+					OLED_ShowString(55,2,"OFF",16);
+				}
+				if(strcmp(relay2Flag,"RELAY2ON") == 0)
+				{
+					OLED_ShowString(55,4,"ON",16);
+				}else
+				{
+					OLED_ShowString(55,4,"OFF",16);
+				}
+				if(strcmp(beepFlag,"BEEPON") == 0)
+				{
+					OLED_ShowString(50,6,"ON",16);
+				}else
+				{
+					OLED_ShowString(50,6,"OFF",16);
+				}
+			}else
+			{
+				OLED_ShowString(0,0,"LED:",16);
+				OLED_ShowString(0,2,"RELAY:",16);
+				OLED_ShowString(0,4,"RELAY2:",16);
+				OLED_ShowString(0,6,"BEEP:",16);
+				for(i=0;i<3;i++)
+				{
+					if(strcmp(ledFlag,"LEDON") == 0)
+					{
+						OLED_ShowString(35,0,"ON",16);
+					}else
+					{
+						OLED_ShowString(35,0,"OFF",16);
+					}
+					if(strcmp(relayFlag,"RELAYON") == 0)
+					{
+						OLED_ShowString(55,2,"ON",16);
+					}else
+					{
+						OLED_ShowString(55,2,"OFF",16);
+					}
+					if(strcmp(relay2Flag,"RELAY2ON") == 0)
+					{
+						OLED_ShowString(55,4,"ON",16);
+					}else
+					{
+						OLED_ShowString(55,4,"OFF",16);
+					}
+					if(strcmp(beepFlag,"BEEPON") == 0)
+					{
+						OLED_ShowString(50,6,"ON",16);
+					}else
+					{
+						OLED_ShowString(50,6,"OFF",16);
+					}
+					DelayMs(2500);
+				}			
+		}
+		 i=0;
+		 flush_flag=0;//刷屏标志位复位
+	}break;
+			case 2:
+			{
+				page_flag++;
+			if(flush_flag == 0){//第一次显示
+				OLED_Clear();
+				OLED_ShowString(0,0,"Tem",16);
+				OLED_ShowString(30,0,"min:",16);
+				OLED_ShowString(80,0,"max:",16);
+				OLED_ShowNum(55,0,tem_fa_min,3,16);
+				OLED_ShowNum(105,0,tem_fa_max,3,16);
+				
+			}else{}
+		 i=0;
+		 flush_flag=0;//刷屏标志位复位
+			}
+			break;
+	 }
+			
+			TIM_ClearITPendingBit(TIM6, TIM_IT_Update); //清除TIM6溢出中断标志
+			}
+			
+			
+	
+//	
+}
 /*-------------------------------------------------*/
 /*函数名：定时器4中断服务函数。处理MQTT数据          */
 /*参  数：无                                       */
@@ -121,10 +293,12 @@ void TIM5_IRQHandler(void)
 //  int   tempLen;	
 	if(TIM_GetFlagStatus(TIM5, TIM_IT_Update) != RESET)//如果TIM_IT_Update置位，表示TIM5溢出中断，进入if	
 	{    
-		if(Flash_fa != 0 && Auto_ctro !=0)			// 15s存一次
+		if(Flash_fa != 0 && Auto_ctro !=0)
 		{
 			// 断网保存阈值数据
-			sprintf((char *)Maxbuf, "%d:%d:%d:%d",tem_fa,hum_fa,light_fa,soil_fa);		// 每3秒保存一次
+//			sprintf((char *)Maxbuf, "%d:%d:%d:%d",tem_fa,hum_fa,light_fa,soil_fa);		// 每3秒保存一次
+			sprintf((char *)Maxbuf, "%d:%d:%d:%d:%d:%d:%d:%d",tem_fa_min,tem_fa_max,hum_fa_min,hum_fa_max,
+				light_fa_min,light_fa_max,soil_fa_min,soil_fa_max);
 			u1_printf("write:%s\r\n", Maxbuf);
 			STMFLASH_Write(FLASH_SAVE_ADDR,(u16*)Maxbuf,sizeof(Maxbuf));//写入flash
 		}
@@ -210,46 +384,138 @@ void TIM2_IRQHandler(void)
 		
 		Hum_val = Myatoi(hum_buff);
 		Tem_val = Myatoi(tem_buff);
-		if(oled_flag%3==1 && Auto_ctro==0)
-		{
-			OLED_Clear();
-			oled_flag++;
-		}
 		//OLED_Clear();
 //	OLED_ShowString(0,0,"Tem:",16);
 //	OLED_ShowString(70,0,"Hum:",16);
 //	OLED_ShowString(0,2,"Soil_H:",16);
 //	OLED_ShowString(0,4,"Light:",16);
-		oled_dispaly();
-	  OLED_ShowNum(35,0,Tem_val,2,16);
-		OLED_ShowNum(100,0,Hum_val,2,16);
-		OLED_ShowNum(55,2,Soil_val,2,16);
-		OLED_ShowNum(50,4,Light_val,2,16);
-		OLED_ShowString(45,6,"OFF",16);
+//		oled_dispaly();
+//	  OLED_ShowNum(35,0,Tem_val,2,16);
+//		OLED_ShowNum(100,0,Hum_val,2,16);
+//		OLED_ShowNum(55,2,Soil_val,2,16);
+//		OLED_ShowNum(50,4,Light_val,2,16);
+//		OLED_ShowString(45,6,"OFF",16);
 //		OLED_ShowNum(30,6,Soil_val,2,16);
 //		OLED_ShowNum(100,6,Light_val,2,16);
-		if(Auto_ctro !=0)
+
+//		step_flag = 0;
+		if(Auto_ctro !=0 )
 		{
-			if(oled_flag%3==0 || oled_flag%3==2)
+//			oled_dispaly();
+//			OLED_ShowNum(35,0,Tem_val,2,16);
+//			OLED_ShowNum(100,0,Hum_val,2,16);
+//			OLED_ShowNum(55,2,Soil_val,2,16);
+//			OLED_ShowNum(50,4,Light_val,2,16);
+//			OLED_ShowString(45,6,"ON",16);
+			//-------------自动功能-------------
+			if(Hum_val<=hum_fa_min)
 			{
-				OLED_Clear();
-				oled_flag++;
+				beepFlag = "BEEPON";//打开水泵
+				BEEP_On();
 			}
-			oled_dispaly();
-			OLED_ShowNum(35,0,Tem_val,2,16);
-			OLED_ShowNum(100,0,Hum_val,2,16);
-			OLED_ShowNum(55,2,Soil_val,2,16);
-			OLED_ShowNum(50,4,Light_val,2,16);
-			OLED_ShowString(45,6,"ON",16);
-			if(Hum_val>=hum_fa)
+			if(Hum_val>=hum_fa_max)
 			{
-				ledFlag = "LEDON";
+				
+				relayFlag = "RELAYON";//关闭除湿器
+				Relay_On();
+	
+			}
+			if(Hum_val>hum_fa_min && Hum_val<hum_fa_max)
+			{
+				beepFlag = "BEEPOFF";//关闭水泵
+				BEEP_Off();
+				//除湿
+				relayFlag = "RELAYOFF";//打开除湿器
+				Relay_Off();
+//				beepFlag = "BEEPOFF";//关闭水泵
+//				BEEP_Off();
+			}
+			if(Tem_val <= tem_fa_min)
+			{
+				ledFlag = "LEDON";//升温(打开光源)
 				LED_On();
-			}else
+			}	
+			else if(Tem_val >= tem_fa_max)
 			{
-				ledFlag = "LEDOFF";
-				LED_Off();
+//				relay2Flag = "RELAY2ON";//(通风机)降温
+//				Relay2_On();
+				fansFlag = "FANSON";//(通风机)降温
+				Fans_On();
+				
 			}
+			else
+				{
+					ledFlag = "LEDOFF";//(关闭光源)
+					LED_Off();
+//					relay2Flag = "RELAY2OFF";//(通风机)关闭
+//					Relay2_Off();
+				fansFlag = "FANSOFF";//(通风机)关闭
+				Fans_Off();
+				}
+			if(Light_val <= light_fa_min)
+			{
+				led2Flag = "LED2ON";//补光(打开光源)
+				LED2_On();
+				
+			}
+			else	if(Light_val >= light_fa_max)
+			{
+//				step_flag = 0;
+//				step_flag++;
+				if(step_flag == 0 && step_on_flag == 0){
+					STEP_MOTOR_LOOP(1,3,1);  //步进电机正转 遮阳
+					step_flag++;
+					step_on_flag = 1;
+				}
+				
+//				ledFlag = "LEDOFF";//补光(打开光源)
+//				LED_Off();
+//				relay2Flag = "RELAY2ON";//遮阳
+//				Relay2_On();
+				
+			}
+			else
+			{
+				led2Flag = "LED2OFF";//(关闭光源)
+				LED2_Off();
+//				step_flag = 0;
+//				step_flag++;
+				if(step_flag == 1 && step_on_flag == 1)
+				{
+					STEP_MOTOR_LOOP(0,3,1);  //步进电机反转 开帘
+					step_flag--;
+					step_on_flag = 0;
+				}
+				
+//				relay2Flag = "RELAY2OFF";//关闭
+//				Relay2_Off();
+			}
+			if(Soil_val <= soil_fa_min)
+			{
+				relay2Flag = "RELAY2ON";//打开水泵
+				Relay2_On();
+//				Syn_flag=1;
+			}
+				if(Soil_val >= soil_fa_max)
+			{
+				relay2Flag = "RELAY2OFF";//关闭水泵
+				Relay2_Off();
+//				Syn_flag=1;
+			}
+//			if(Syn_flag ==1){
+				Send_Status();//发送控制设备的状态数据
+//				Syn_flag = 0;
+//			}
+			
+//			if(Hum_val>=hum_fa)
+//			{
+//				ledFlag = "LEDON";
+//				LED_On();
+//			}else
+//			{
+//				ledFlag = "LEDOFF";
+//				LED_Off();
+//			}
 //			if(Light_val>=light_fa)
 //			{
 //				beepFlag = "BEEPON";
@@ -259,33 +525,48 @@ void TIM2_IRQHandler(void)
 //				beepFlag = "BEEPOFF";
 //				BEEP_Off();
 //			}
-			if(Tem_val>=tem_fa)
-			{
-				relayFlag = "RELAYON";
-				Relay_On();
-			}else
-			{
-				relayFlag = "RELAYOFF";
-				Relay_Off();
-			}
-		}
+//			if(Tem_val>=tem_fa)
+//			{
+//				relayFlag = "RELAYON";
+//				Relay_On();
+//			}else
+//			{
+//				relayFlag = "RELAYOFF";
+//				Relay_Off();
+//			}
 		
 	if(Tem_val<0) //如果温度为负
 		{
-			sprintf(temp,"{\"Tem\":\"-%d\",\"Hum\":\"%d\"}",Tem_val,Hum_val);//构建报文
-			if(connectFlag == 1)
-				MQTT_PublishQs0(Data_TOPIC_NAME,temp, strlen(temp));
+//			sprintf(temp,"{\"Tem\":\"-%d\",\"Hum\":\"%d\"}",Tem_val,Hum_val);//构建报文
+//			if(connectFlag == 1)
+//				MQTT_PublishQs0(Data_TOPIC_NAME,temp, strlen(temp));
 		}
-	else  //如果温度为正
-		{
-//			u1_printf("土壤湿度为：%d\r\n",Soil_val);
-			//sprintf(temp,"{\"Light\":\"%d\",\"Temp\":\"%d\",\"Hum\":\"%d\",\"Soil\":\"%d\"}",Light_val,Tem_val,Hum_val,Soil_val);//构建报文\
-			
+		
+		if(Hum_val<=100)
+			{
 			sprintf(temp,"{\"Solar\":{\"Light\":\"%d\"},\"DHT11\":{\"Tem\":\"%d\",\"Hum\":\"%d\"},\"GY16\":{\"Soil\":\"%d\"}}",Light_val,Tem_val,Hum_val,Soil_val);//构建报文
 			T_json(1,0,temp,tempAll);
 			//sprintf(temp,"{\"Tem\":\"%d\",\"Hum\":\"%d\"}",Tem_val,Hum_val);
 			if(connectFlag == 1)
 				MQTT_PublishQs0(Data_TOPIC_NAME,tempAll, strlen(tempAll));
+				
+			}
+	}
+	else  //如果温度为正
+		{
+			if(Hum_val<=100)
+			{
+			sprintf(temp,"{\"Solar\":{\"Light\":\"%d\"},\"DHT11\":{\"Tem\":\"%d\",\"Hum\":\"%d\"},\"GY16\":{\"Soil\":\"%d\"}}",Light_val,Tem_val,Hum_val,Soil_val);//构建报文
+			T_json(1,0,temp,tempAll);
+			//sprintf(temp,"{\"Tem\":\"%d\",\"Hum\":\"%d\"}",Tem_val,Hum_val);
+			if(connectFlag == 1)
+				MQTT_PublishQs0(Data_TOPIC_NAME,tempAll, strlen(tempAll));
+				
+			}
+//			u1_printf("土壤湿度为：%d\r\n",Soil_val);
+			//sprintf(temp,"{\"Light\":\"%d\",\"Temp\":\"%d\",\"Hum\":\"%d\",\"Soil\":\"%d\"}",Light_val,Tem_val,Hum_val,Soil_val);//构建报文\
+			
+			
 		}
 //		memset(temp, 0, sizeof(temp));
 //		memset(tempAll, 0, sizeof(tempAll));
@@ -323,6 +604,7 @@ void TIM2_IRQHandler(void)
 
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);   	
 	}
+	
 }
 
 /*-------------------------------------------------*/

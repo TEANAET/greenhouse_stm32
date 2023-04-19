@@ -13,6 +13,7 @@
 #include "timer2.h"      //包含需要的头文件
 #include "timer3.h"      //包含需要的头文件
 #include "timer4.h"      //包含需要的头文件
+#include "timer6.h"
 #include "timer5.h"      //包含需要的头文件
 #include "wifi.h"	     //包含需要的头文件
 #include "led.h"	     //包含需要的头文件 LED                                                  
@@ -21,6 +22,7 @@
 #include "lsens.h"
 #include "Relay.h"
 #include "stmflash.h"
+#include "step_motor.h"
 #include "adc.h"
 #include "dht11.h"       //包含需要的头文件 空气温湿度
 #include "MQ_Sensor.h"
@@ -45,21 +47,26 @@
 char *LightFA="$LIGHT#S";
 char *TemFA="$TEM#S";
 char *HumFA="$HUM#S";
-char *SoilFA="$Soil#S";
-
-
+char *SoilFA="$SOIL#R";
 /*********************阈值*******************************/
 	s8 tem_fa=0;//温度阈值
 	u8 soil_fa=0;//土壤湿度阈值
 	u8 hum_fa=0;//湿度阈值
 	u8 light_fa=0;//光照阈值
-
+	s8 tem_fa_min=0;//温度阈值(下限)
+	s8 tem_fa_max=0;//温度阈值(上限)
+	u8 soil_fa_min=0;//土壤湿度阈值(下限)
+	u8 soil_fa_max=0;//土壤湿度阈值()
+	u8 hum_fa_min=0;//湿度阈值(下限)
+	u8 hum_fa_max=0;//湿度阈值
+	u8 light_fa_min=0;//光照阈值(下限)
+	u8 light_fa_max=0;//光照阈值
 
 /**********************FLASH***********************************/
-	u8 Max_data_buf[11] = {0};//阈值数据缓冲区
+	u8 Max_data_buf[12] = {0};//阈值数据缓冲区
 	u8 Flash_fa = 0;//存入Flash标志位
-
-
+	u8 Syn_flag = 0;//同步标志位
+	
 /*********************状态标志位***************************/
 // 状态标志位
  u8 Auto_ctro = 0;					// 自动控制 默认为0（手动）
@@ -75,18 +82,24 @@ char *cmdAuto_Off = "AUTO_OFF";			//自动控制关
 /********************控制指令*****************************/
 char *cmdLED_On = "LEDON";      //LED打开
 char *cmdLED_Off = "LEDOFF";    //LED关闭
+char *cmdLED2_On = "LED2ON";      //LED2打开
+char *cmdLED2_Off = "LED2OFF";    //LED2关闭
 char *cmdBEEP_On = "BEEPON";      //蜂鸣器·打开
 char *cmdBEEP_Off = "BEEPOFF";    //蜂鸣器关闭
 char *cmdRelay_On = "RELAYON";      //继电器·打开
 char *cmdRelay_Off = "RELAYOFF";    //继电器关闭
-char *cmdRelay2_On = "RELAY2ON";      //继电器·打开
-char *cmdRelay2_Off = "RELAY2OFF";    //继电器关闭
+char *cmdRelay2_On = "RELAY2ON";      //继电器2·打开
+char *cmdRelay2_Off = "RELAY2OFF";     //继电器2关闭
+char *cmdFans_On = "FANSON";          //排气扇·打开
+char *cmdFans_Off = "FANSOFF";          //排气扇关闭
 
 /*********************状态标志位****************************/
 char *ledFlag = "LEDOFF";       //LED状态
+char *led2Flag = "LED2OFF";       //LED状态
 char *beepFlag = "BEEPOFF";       //蜂鸣器状态
 char *relayFlag = "RELAYOFF";     //继电器状态
 char *relay2Flag = "RELAY2OFF";
+char *fansFlag = "FANSOFF";      //排气扇状态
 char *auto_flag = "AUTO_OFF";
 //int   dhtFlag = 0;		        //温湿度数据传输状态
 u8 adcx;
@@ -100,14 +113,18 @@ int main(void)
 	TIM4_Init(500,7200);   //TIM4初始化，定时时间 500*7200*1000/72000000 = 50ms
 	  //TIM5初始化，定时时间 500*7200*1000/72000000 = 50ms
 	LED_Init();			   //LED初始化
+	LED2_Init();				//LED2初始化
 	BEEP_Init();         	//初始化蜂鸣器端口
 	Lsens_Init(); 			//初始化光敏传感器
 	DHT11_Init();          //初始化DHT11	
 	Relay_Init();        //继电器初始化
 	Relay2_Init();			//继电器2初始化
+	Fans_Init();       //排气扇初始化	
 	Adc_Soil_Init();     //土壤湿度初始化
+	STEP_MOTOR_Init();   //步进电机初始化
 	OLED_Init();
 	OLED_Clear();
+//	
 	
 //	GP2Y_ADC_init();
 	
@@ -126,20 +143,15 @@ int main(void)
 		// 读取阈值
 	STMFLASH_Read(FLASH_SAVE_ADDR,(u16*)Max_data_buf,sizeof(Max_data_buf));					// 从flash读出阈值
 	u1_printf("11111111111111fazhi:%s\r\n", Max_data_buf);
-	sscanf((char *)Max_data_buf,"%hhu:%hhu:%hhu:%hhu", &tem_fa, &hum_fa, &light_fa,&soil_fa);
-	u1_printf("fazhi:%d,%d,%d,%d\r\n", tem_fa,hum_fa,light_fa,soil_fa);
-//	OLED_Clear();
-//	OLED_ShowString(0,0,"Tem:",16);
-//	OLED_ShowString(70,0,"Hum:",16);
-//	OLED_ShowString(0,2,"Soil_H:",16);
-//	OLED_ShowString(0,4,"Light:",16);
+//	sscanf((char *)Max_data_buf,"%hhu:%hhu:%hhu:%hhu", &tem_fa, &hum_fa, &light_fa,&soil_fa);
+//	u1_printf("fazhi:%d,%d,%d,%d\r\n", tem_fa,hum_fa,light_fa,soil_fa);
+		sscanf((char *)Max_data_buf,"%hhu:%hhu:%hhu:%hhu:%hhu:%hhu:%hhu:%hhu",&tem_fa_min,&tem_fa_max,&hum_fa_min,&hum_fa_max,&light_fa_min,
+			&light_fa_max,&soil_fa_min,&soil_fa_max);
+	u1_printf("fazhi:%d,%d,%d,%d,%d,%d,%d,%d\r\n", tem_fa_min,tem_fa_max,hum_fa_min,hum_fa_max,light_fa_min,light_fa_max,soil_fa_min,soil_fa_max);
+
 	while(1)
 while(1)
 	{		
-		
-//		DHT11_Read_Data(tem,hum);
-//		u1_printf("%s\r%s\r\n",tem,hum);
-		// connectFlag=1同服务器建立了连接 
 		
 		if(connectFlag == 1) 
 		{     
@@ -228,6 +240,7 @@ while(1)
 									Send_Data();
 									TIM5_Init(10000,36000); //定时15s,保存一次阈值
 									TIM2_ENABLE_5S();
+									TIM6_Init(20000,12000);
 									break;								//跳出分支                                             
 						default: 
 									u1_printf("订阅失败，准备重启\r\n");//串口输出信息 
@@ -247,6 +260,7 @@ while(1)
 					{ 				 									//如果pingFlag>1，表示是多次发送了，而且是2s间隔的快速发送
 						pingFlag = 0;     				      			//要清除pingFlag标志
 						TIM3_ENABLE_30S(); 				      			//PING定时器重回30s的时间
+						//Send_Status();
 					}				
 				}	
 				//if判断，如果第一个字节是0x30，表示收到的是服务器发来的推送数据
@@ -277,8 +291,9 @@ while(1)
 				{
 					Auto_ctro=1;//自动控制标志位置1
 					auto_flag = "AUTO_ON";
-					
 					u1_printf("自动控制开!\r\n");
+					Syn_flag = 1;//状态同步标志位值1
+//					Send_Status();//发送控制设备的状态数据
 					
 				}
 				else if(!memcmp(&MQTT_CMDOutPtr[2],cmdAuto_Off,strlen(cmdAuto_Off)))//如果是自动控制关命令
@@ -286,46 +301,87 @@ while(1)
 					Auto_ctro = 0;                 //自动控制标志位置0
 					u1_printf("自动控制关!\r\n");
 					auto_flag = "AUTO_OFF";
-					Flash_fa=0;
+					Flash_fa=0;//阀值无法写入Flash
 				}
 				else if(Auto_ctro != 0)//打开了自动控制
 				{
-				 if(!memcmp(&MQTT_CMDOutPtr[2],TemFA, 6))
+//				 if(!memcmp(&MQTT_CMDOutPtr[2],TemFA, 6))
+//					{
+//					// 进行切割得到对应阈值
+//						strtok((char *)&MQTT_CMDOutPtr[2], "S");
+//						temp = strtok(NULL, "S");					// eg:得到xx*
+//						tem_fa = (u8)atoi(strtok(temp, "*"));			// 得到温度阈值	  
+//						u1_printf("温度阈值：%d\r\n",tem_fa);
+//						Flash_fa = 1;//存入Flash标志位
+//					}
+					if(!memcmp(&MQTT_CMDOutPtr[2],TemFA, 6))
 					{
 					// 进行切割得到对应阈值
-						strtok((char *)&MQTT_CMDOutPtr[2], "S");
-						temp = strtok(NULL, "S");					// eg:得到xx*
-						tem_fa = (u8)atoi(strtok(temp, "*"));			// 得到温度阈值	  
-						u1_printf("温度阈值：%d\r\n",tem_fa);
+						strtok((char *)&MQTT_CMDOutPtr[2], "S*");
+						temp = strtok(NULL, "S*");					// eg:得到45:60
+						tem_fa_min = (u8)atoi(strtok(temp, ":"));   //// eg:得到45
+						tem_fa_max = (u8)atoi(strtok(NULL, ":"));			// // eg:得到60	
+						u1_printf("温度阈值：%d,%d\r\n",tem_fa_min,tem_fa_max);
 						Flash_fa = 1;//存入Flash标志位
 					}
 					
+//					else if(!memcmp(&MQTT_CMDOutPtr[2],HumFA, 6))//湿度阈值命令
+//					{     
+//						// 进行切割得到对应阈值
+//						strtok((char *)&MQTT_CMDOutPtr[2], "S");
+//						temp = strtok(NULL, "S");					// eg:μ?μ?30.5*
+//						hum_fa = (u8)atoi(strtok(temp, "*"));	// 得到湿度阈值	
+//						u1_printf("湿度度阈值：%d\r\n",hum_fa);
+//						Flash_fa = 1;//存入Flash标志位//存入Flash标志位
+//					}
 					else if(!memcmp(&MQTT_CMDOutPtr[2],HumFA, 6))//湿度阈值命令
 					{     
 						// 进行切割得到对应阈值
-						strtok((char *)&MQTT_CMDOutPtr[2], "S");
-						temp = strtok(NULL, "S");					// eg:μ?μ?30.5*
-						hum_fa = (u8)atoi(strtok(temp, "*"));	// 得到湿度阈值	
-						u1_printf("湿度度阈值：%d\r\n",hum_fa);
-						Flash_fa = 1;//存入Flash标志位//存入Flash标志位
-					}
-					else if(!memcmp(&MQTT_CMDOutPtr[2],LightFA, strlen(LightFA)))//阈值命令
-					{     
-						// 进行切割得到对应阈值
-						strtok((char *)&MQTT_CMDOutPtr[2], "S");
-						temp = strtok(NULL, "S");					// eg:μ?μ?30.5*
-						light_fa = (u8)atoi(strtok(temp, "*"));	// 得到光照度阈值	
-						u1_printf("光照度阈值：%d\r\n",light_fa);
+						strtok((char *)&MQTT_CMDOutPtr[2], "S*");
+						temp = strtok(NULL, "S*");					// eg:得到45:60
+						hum_fa_min = (u8)atoi(strtok(temp, ":"));   //// eg:得到45
+						hum_fa_max = (u8)atoi(strtok(NULL, ":"));			// // eg:得到60	
+						u1_printf("湿度阈值：%d,%d\r\n",hum_fa_min,hum_fa_max);
 						Flash_fa = 1;//存入Flash标志位
 					}
 					
+//					else if(!memcmp(&MQTT_CMDOutPtr[2],LightFA, strlen(LightFA)))//阈值命令
+//					{     
+//						// 进行切割得到对应阈值
+//						strtok((char *)&MQTT_CMDOutPtr[2], "S");
+//						temp = strtok(NULL, "S");					// eg:μ?μ?30.5*
+//						light_fa = (u8)atoi(strtok(temp, "*"));	// 得到光照度阈值	
+//						u1_printf("光照度阈值：%d\r\n",light_fa);
+//						Flash_fa = 1;//存入Flash标志位
+//					}
+					else if(!memcmp(&MQTT_CMDOutPtr[2],LightFA, strlen(LightFA)))//阈值命令
+					{     
+						// 进行切割得到对应阈值
+						strtok((char *)&MQTT_CMDOutPtr[2], "S*");
+						temp = strtok(NULL, "S*");					// eg:得到45:60
+						light_fa_min = (u8)atoi(strtok(temp, ":"));   //// eg:得到45
+						light_fa_max = (u8)atoi(strtok(NULL, ":"));			// // eg:得到60	
+						u1_printf("光照度阈值：%d,%d\r\n",light_fa_min,light_fa_max);
+						Flash_fa = 1;//存入Flash标志位
+					}
+					
+//					else if(!memcmp(&MQTT_CMDOutPtr[2],SoilFA, strlen(SoilFA)))//阈值命令
+//					{     
+//						// 进行切割得到对应阈值
+//						strtok((char *)&MQTT_CMDOutPtr[2], "S");
+//						temp = strtok(NULL, "S");					// eg:μ?μ?30.5*
+//						soil_fa = (u8)atoi(strtok(temp, "*"));	// 得到土壤湿度阈值	
+//						u1_printf("土壤湿度阈值：%d\r\n",soil_fa);
+//						Flash_fa = 1;//存入Flash标志位
+//					}
 					else if(!memcmp(&MQTT_CMDOutPtr[2],SoilFA, strlen(SoilFA)))//阈值命令
 					{     
 						// 进行切割得到对应阈值
-						strtok((char *)&MQTT_CMDOutPtr[2], "S");
-						temp = strtok(NULL, "S");					// eg:μ?μ?30.5*
-						soil_fa = (u8)atoi(strtok(temp, "*"));	// 得到土壤湿度阈值	
-						u1_printf("土壤湿度阈值：%d\r\n",soil_fa);
+						strtok((char *)&MQTT_CMDOutPtr[2], "R*");
+						temp = strtok(NULL, "R*");					// eg:得到45:60
+						soil_fa_min = (u8)atoi(strtok(temp, ":"));   //// eg:得到45
+						soil_fa_max = (u8)atoi(strtok(NULL, ":"));			// // eg:得到60	
+						u1_printf("土壤湿度阈值：%d,%d\r\n",soil_fa_min,soil_fa_max);
 						Flash_fa = 1;//存入Flash标志位
 					}
 					
@@ -346,10 +402,41 @@ while(1)
 						LED_Off(); 								                //LED关闭
 						u1_printf("LED关闭\r\n");
 					}
+					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdLED2_On,strlen(cmdLED2_On))) //判断指令，如果是CMD11
+					{ 
+						led2Flag = "LED2ON";                                              
+						LED2_On(); 								                //LED2开启
+						u1_printf("LED2开启\r\n");
+					}
+					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdLED2_Off,strlen(cmdLED2_Off))) //判断指令，如果是CMD11
+					{ 
+						led2Flag = "LED2OFF";                                              
+						LED2_Off(); 								                //LED2关闭
+						u1_printf("LED2关闭\r\n");
+					}
+					
+					
+					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdFans_On,strlen(cmdFans_On))) //判断指令，如果是CMD11
+					{ 
+						fansFlag = "FANSON";                                              
+						Fans_On(); 								                //排气扇开启
+//						STEP_MOTOR_LOOP(1,3,1);  //步进电机正转
+						u1_printf("排气扇开启\r\n");
+					}
+					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdFans_Off,strlen(cmdFans_Off))) //判断指令，如果是CMD11
+					{ 
+						fansFlag = "FANSOFF";                                              
+						Fans_Off(); 								                //排气扇关闭
+//						STEP_MOTOR_LOOP(0,3,1);  //步进电机正转
+						u1_printf("排气扇关闭\r\n");
+					}
+					
+					
+					
 					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdBEEP_On,strlen(cmdBEEP_On))) //判断指令，如果是CMD11
 					{ 
 						beepFlag = "BEEPON";                                           
-						BEEP_On(); 								                //LED关闭
+						BEEP_On(); 								                //蜂鸣器开启
 						u1_printf("蜂鸣器开启\r\n");
 					}
 					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdBEEP_Off,strlen(cmdBEEP_Off))) //判断指令，如果是CMD11
@@ -363,14 +450,14 @@ while(1)
 					{ 
 						relayFlag = "RELAYON";                                           
 						Relay_On(); 								                //LED关闭
-						Air_flag=1;
+//						Air_flag=1;
 						u1_printf("继电器开启\r\n");
 					}
 					else if(!memcmp(&MQTT_CMDOutPtr[2],cmdRelay_Off,strlen(cmdRelay_Off))) //判断指令，如果是CMD11
 					{ 
 						relayFlag = "RELAYOFF";                                           
 						Relay_Off();
-						Air_flag=0;
+//						Air_flag=0;
 						u1_printf("继电器关闭\r\n");
 						
 					}

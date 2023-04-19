@@ -15,9 +15,11 @@
 //extern char *ledFlag;               //补光灯状态    
 //extern char *beepFlag;
 //extern int fa;
-extern u8 soil_fa,hum_fa,light_fa;
-extern s8 tem_fa;
-extern char *ledFlag,*beepFlag,*relayFlag,*relay2Flag,*auto_flag;
+//extern u8 soil_fa,hum_fa,light_fa;
+//extern s8 tem_fa;
+extern s8 tem_fa_min,tem_fa_max;
+extern u8 hum_fa_min,hum_fa_max,light_fa_min,light_fa_max,soil_fa_min,soil_fa_max;
+extern char *ledFlag,*beepFlag,*relayFlag,*relay2Flag,*auto_flag,*led2Flag,*fansFlag;
 
 //void convertUnCharToStr(char* str, unsigned char* UnChar, int ucLen)  
 //{  
@@ -79,7 +81,7 @@ void Send_Status(void)
 	memset(head1,      0, 3);   //清空MQTT头                           						 
 
 //	sprintf(temp, "{\"LED\":\"%s\",\"BEEP\":\"%s\",\"TEMFA\":\"%d\",\"HUMFA\":\"%d\",\"LIGHTFA\":\"%d\"}", ledFlag,beepFlag,tem_fa,hum_fa,light_fa);//构建报文,“LED”为OneNET平台的数据流名称
-	sprintf(temp,"{\"Status\":{\"LED\":\"%s\",\"BEEP\":\"%s\",\"RELAY\":\"%s\",\"RELAY2\":\"%s\",\"AUTO\":\"%s\"}}",ledFlag,beepFlag,relayFlag,relay2Flag,auto_flag);
+	sprintf(temp,"{\"Status\":{\"LED\":\"%s\",\"LED2\":\"%s\",\"FAN\":\"%s\",\"BEEP\":\"%s\",\"RELAY\":\"%s\",\"RELAY2\":\"%s\",\"AUTO\":\"%s\"}}",ledFlag,led2Flag,fansFlag,beepFlag,relayFlag,relay2Flag,auto_flag);
 	T_json(1,1,temp,tempAll);
 	if(connectFlag == 1)
 				MQTT_PublishQs0(Data_Status_Return,tempAll, strlen(tempAll));
@@ -87,18 +89,28 @@ void Send_Status(void)
 
 void Send_Data(void)
 {		
+	char Tem_F[8],Hum_F[8],Soil_F[8],Solar_F[8];
 	char  head1[3];
 	char  temp[128];          	//定义一个临时缓冲区1,不包括报头
 	char  tempAll[256];       	//定义一个临时缓冲区2，包括所有数据
 
 	int   dataLen;     	  	    //报文长度	
 	
+	memset(Tem_F,0,8);
+	memset(Hum_F,0,8);
+	memset(Soil_F,0,8);
+	memset(Solar_F,0,8);
 	memset(temp,       0, 128);  //清空缓冲区1
 	memset(tempAll,    0, 256); //清空缓冲区2
 	memset(head1,      0, 3);   //清空MQTT头                           						 
 
 //	sprintf(temp, "{\"LED\":\"%s\",\"BEEP\":\"%s\",\"TEMFA\":\"%d\",\"HUMFA\":\"%d\",\"LIGHTFA\":\"%d\"}", ledFlag,beepFlag,tem_fa,hum_fa,light_fa);//构建报文,“LED”为OneNET平台的数据流名称
-	sprintf(temp,"{\"FAZHI\":{\"TEMFA\":\"%d\",\"HUMFA\":\"%d\",\"LIGHTFA\":\"%d\",\"SOILFA\":\"%d\"}}",tem_fa,hum_fa,light_fa,soil_fa);
+	sprintf(Tem_F,"%d:%d",tem_fa_min,tem_fa_max);
+	sprintf(Hum_F,"%d:%d",hum_fa_min,hum_fa_max);
+	sprintf(Soil_F,"%d:%d",soil_fa_min,soil_fa_max);
+	sprintf(Solar_F,"%d:%d",light_fa_min,light_fa_max);
+//	sprintf(temp,"{\"FAZHI\":{\"TEMFA\":\"%d\",\"HUMFA\":\"%d\",\"LIGHTFA\":\"%d\",\"SOILFA\":\"%d\"}}",tem_fa,hum_fa,light_fa,soil_fa);
+  sprintf(temp,"{\"FAZHI\":{\"TEMFA\":\"%s\",\"HUMFA\":\"%s\",\"LIGHTFA\":\"%s\",\"SOILFA\":\"%s\"}}",Tem_F,Hum_F,Solar_F,Soil_F);
 	T_json(1,2,temp,tempAll);
 	if(connectFlag == 1)
 				MQTT_PublishQs0(Data_Fa_Return,tempAll, strlen(tempAll));
