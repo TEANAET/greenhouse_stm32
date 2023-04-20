@@ -85,7 +85,7 @@ void TIM6_IRQHandler(void)
 	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)//如果TIM_IT_Update置位，表示TIM6溢出中断，进入if	
 	{
 		
-		switch(page_flag%3)
+		switch(page_flag%4)
 			{
 			case 0:
 			{
@@ -216,16 +216,81 @@ void TIM6_IRQHandler(void)
 		 i=0;
 		 flush_flag=0;//刷屏标志位复位
 	}break;
-			case 2:
+			case 2:{
+				page_flag++;
+			if(flush_flag == 0){//第一次显示
+				OLED_Clear();
+				OLED_ShowString(0,0,"LED2:",16);
+				OLED_ShowString(0,2,"FAN:",16);
+//				OLED_ShowString(0,4,"RELAY2:",16);
+//				OLED_ShowString(0,6,"BEEP:",16);
+				if(strcmp(led2Flag,"LED2ON") == 0)
+				{
+					OLED_ShowString(45,0,"ON",16);
+				}else
+				{
+					OLED_ShowString(45,0,"OFF",16);
+				}
+				if(strcmp(fansFlag,"FANSON") == 0)
+				{
+					OLED_ShowString(37,2,"ON",16);
+				}else
+				{
+					OLED_ShowString(37,2,"OFF",16);
+				}
+			}else{
+				OLED_ShowString(0,0,"LED2:",16);
+				OLED_ShowString(0,2,"FAN:",16);
+				for(i=0;i<3;i++)
+				{
+					if(strcmp(led2Flag,"LED2ON") == 0)
+					{
+						OLED_ShowString(45,0,"ON",16);
+					}else
+					{
+						OLED_ShowString(45,0,"OFF",16);
+					}
+					if(strcmp(fansFlag,"FANSON") == 0)
+					{
+					OLED_ShowString(37,2,"ON",16);
+					}else
+					{
+					OLED_ShowString(37,2,"OFF",16);
+					}
+					DelayMs(2500);
+				}			
+			}
+			 i=0;
+			 flush_flag=0;//刷屏标志位复位
+			}break;
+			case 3:
 			{
 				page_flag++;
 			if(flush_flag == 0){//第一次显示
 				OLED_Clear();
-				OLED_ShowString(0,0,"Tem",16);
-				OLED_ShowString(30,0,"min:",16);
-				OLED_ShowString(80,0,"max:",16);
-				OLED_ShowNum(55,0,tem_fa_min,3,16);
+				OLED_ShowString(0,0,"T",16);
+				OLED_ShowString(15,0,"min:",16);
+				OLED_ShowString(75,0,"max:",16);
+				OLED_ShowNum(47,0,tem_fa_min,3,16);
 				OLED_ShowNum(105,0,tem_fa_max,3,16);
+				
+				OLED_ShowString(0,2,"H",16);
+				OLED_ShowString(15,2,"min:",16);
+				OLED_ShowString(75,2,"max:",16);
+				OLED_ShowNum(47,2,hum_fa_min,3,16);
+				OLED_ShowNum(105,2,hum_fa_max,3,16);
+				
+				OLED_ShowString(0,4,"L",16);
+				OLED_ShowString(15,4,"min:",16);
+				OLED_ShowString(75,4,"max:",16);
+				OLED_ShowNum(47,4,light_fa_min,3,16);
+				OLED_ShowNum(105,4,light_fa_max,3,16);
+				
+				OLED_ShowString(0,6,"S",16);
+				OLED_ShowString(15,6,"min:",16);
+				OLED_ShowString(75,6,"max:",16);
+				OLED_ShowNum(47,6,soil_fa_min,3,16);
+				OLED_ShowNum(105,6,soil_fa_max,3,16);
 				
 			}else{}
 		 i=0;
@@ -381,9 +446,14 @@ void TIM2_IRQHandler(void)
 		memset(tempAll, 0, 256);				//清空缓冲区2
 		memset(head1,   0, 3);					//清空MQTT头
 		 
+		u1_printf("转换前温度:%s\r\n",tem_buff);
+		u1_printf("转换前湿度:%s\r\n",hum_buff);
+		
 		
 		Hum_val = Myatoi(hum_buff);
 		Tem_val = Myatoi(tem_buff);
+		u1_printf("转换后温度:%d\r\n",Tem_val);
+		u1_printf("转换后湿度:%d\r\n",Hum_val);
 		//OLED_Clear();
 //	OLED_ShowString(0,0,"Tem:",16);
 //	OLED_ShowString(70,0,"Hum:",16);
