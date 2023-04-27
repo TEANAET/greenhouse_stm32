@@ -566,7 +566,7 @@ void TIM2_IRQHandler(void)
 				Relay2_On();
 //				Syn_flag=1;
 			}
-				if(Soil_val >= soil_fa_max)
+				else
 			{
 				relay2Flag = "RELAY2OFF";//¹Ø±ÕË®±Ã
 				Relay2_Off();
