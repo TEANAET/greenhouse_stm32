@@ -11,7 +11,8 @@
 #include "usart3.h"        //包含需要的头文件
 #include "timer3.h"        //包含需要的头文件
 #include "mqtt.h"          //包含需要的头文件
-#include "dht11.h"         //包含需要的头文件                  
+#include "dht11.h"         //包含需要的头文件      
+//#include "bsp_dht11.h"
 #include "ds18b20.h"
 #include "delay.h"	
 #include "control.h"
@@ -39,6 +40,7 @@ extern s8 Tem_val;
 extern u8 Auto_ctro,Syn_flag;
 int i;
 u8 Maxbuf[33];
+//DHT11_Data_TypeDef DHT11_Data;
 
 extern char *ledFlag,*beepFlag,*led2Flag,*relayFlag,*relay2Flag,*fansFlag;
 
@@ -420,6 +422,7 @@ void TIM2_IRQHandler(void)
   char tem,hum;	
 	u8 oled_flag = 0;
 	char tem_buff[3],hum_buff[3];
+	
 	char head1[3];
 	char temp[50];				//定义一个临时缓冲区1,不包括报头
 	char tempAll[256];			//定义一个临时缓冲区2，包括所有数据
@@ -452,8 +455,14 @@ void TIM2_IRQHandler(void)
 		
 		Hum_val = Myatoi(hum_buff);
 		Tem_val = Myatoi(tem_buff);
+//		Tem_val=DHT11_Data.temp_int;
+//		Hum_val = DHT11_Data.humi_int;
 		u1_printf("转换后温度:%d\r\n",Tem_val);
 		u1_printf("转换后湿度:%d\r\n",Hum_val);
+		if(Hum_val>100 || Tem_val>90){
+			DHT11_Rst();
+			u1_printf("复位成功");
+		}
 		//OLED_Clear();
 //	OLED_ShowString(0,0,"Tem:",16);
 //	OLED_ShowString(70,0,"Hum:",16);

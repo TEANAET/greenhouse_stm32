@@ -25,6 +25,7 @@
 #include "step_motor.h"
 #include "adc.h"
 #include "dht11.h"       //包含需要的头文件 空气温湿度
+//#include "bsp_dht11.h"
 #include "MQ_Sensor.h"
 #include "oled.h"
 #include <stdlib.h>
@@ -117,6 +118,7 @@ int main(void)
 	BEEP_Init();         	//初始化蜂鸣器端口
 	Lsens_Init(); 			//初始化光敏传感器
 	DHT11_Init();          //初始化DHT11	
+//	DHT11_Init();  //温湿度传感器初始化
 	Relay_Init();        //继电器初始化
 	Relay2_Init();			//继电器2初始化
 	Fans_Init();       //排气扇初始化	
@@ -134,6 +136,7 @@ int main(void)
 	WiFi_EnableIO_Init();  //初始化WiFi模块ESP8266的使能引脚PD/EN
 	WiFi_ResetIO_Init();   //初始化WiFi的复位IO
 	IoT_Parameter_Init();  //初始化MQTT服务器的参数	
+	
 	if(connectFlag == 0)
 		{
 			
